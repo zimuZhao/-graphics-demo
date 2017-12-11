@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <title>GAMMA</title>
+    <style>
+        html, body {
+            margin: 0;
+            height: 100%;
+            cursor: pointer;
+            overflow: hidden;
+            background-color: #000;
+            font-family: Helvetica, sans-serif;;
+        }
+
+        .element {
+            width: 120px;
+            height: 160px;
+            cursor: default;
+            text-align: center;
+            border: 1px solid rgba(127, 255, 255, 0.25);
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.5);
+        }
+
+        .element:hover {
+            border: 1px solid rgba(127, 255, 255, 0.75);
+            box-shadow: 0 0 12px rgba(0, 255, 255, 0.75);
+        }
+
+        .element .number {
+            top: 20px;
+            right: 20px;
+            font-size: 12px;
+            position: absolute;
+            color: rgba(127, 255, 255, 0.75);
+        }
+
+        .element .symbol {
+            left: 0;
+            right: 0;
+            top: 40px;
+            font-size: 60px;
+            font-weight: bold;
+            position: absolute;
+            color: rgba(255, 255, 255, 0.75);
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.95);
+        }
+
+        .element .details {
+            left: 0;
+            right: 0;
+            bottom: 15px;
+            font-size: 12px;
+            position: absolute;
+            color: rgba(127, 255, 255, 0.75);
+        }
+
+    </style>
+</head>
+<body>
+<script src="js/three.min.js"></script>
+<script src="js/tween.min.js"></script>
+<script src="js/TrackballControls.js"></script>
+<script src="js/CSS3DRenderer.js"></script>
+
+<div id="container"></div>
+
+<script>
+  //    GAMMA
+  //              11111111112222222222333333333344444444
+  //     12345678901234567890123456789012345678901234567
+  //    1□□□□□□□      □      □□   □□  □□   □□      □
+  //    2□           □ □     □ □□□ □  □ □□□ □     □ □
+  //    3□  □□□□    □   □    □  □  □  □  □  □    □   □
+  //    4□     □   □□□□□□□   □     □  □     □   □□□□□□□
+  //    5□□□□□□□  □       □  □     □  □     □  □       □
+  const table = [
+    'Aa', 'Australia', '澳大利亚', 1, 1,
+    'Bb', 'Britain', '英国', 2, 1,
+    'Cc', 'China', '中国', 3, 1,
+    'Dd', 'Denmark', '丹麦', 4, 1,
+    'Ee', 'Egypt', '埃及', 5, 1,
+    'Ff', 'France', '法国', 6, 1,
+    'Gg', 'Germany', '德国', 7, 1,
+    'Hh', 'Holland', '荷兰', 14, 1,
+    'Ii', 'Ireland', '爱尔兰', 21, 1,
+    'Jj', 'Japan', '日本', 22, 1,
+    'Kk', 'Korea', '韩国', 26, 1,
+    'Ll', 'Laos', '老挝', 27, 1,
+    'Mm', 'Mexico', '墨西哥', 30, 1,
+    'Nn', 'Norway', '挪威', 31, 1,
+    'Oo', 'Oman', '阿曼', 35, 1,
+    'Pp', 'Peru', '秘鲁', 36, 1,
+    'Qq', 'Qatar', '卡塔尔', 43, 1,
+    'Rr', 'Russia', '俄罗斯', 1, 2,
+    'Ss', 'Spain', '西班牙', 13, 2,
+    'Tt', 'Turkey', '土耳其', 15, 2,
+    'Uu', 'Uganda', '乌干达', 21, 2,
+    'Vv', 'Vietnam', '越南', 23, 2,
+    'Ww', 'Wellington', '惠灵顿', 24, 2,
+    'Xx', 'X', 'x', 25, 2,
+    'Yy', 'Yemen', '也门', 27, 2,
+    'Zz', 'Zimbabwe', '津巴布韦', 30, 2,
+    '京', '北京市', '北京', 32, 2,
+    '津', '天津市', '天津', 33, 2,
+    '沪', '上海市', '上海', 34, 2,
+    '渝', '重庆市', '重庆', 36, 2,
+    '藏', '西藏自治区', '拉萨', 42, 2,
+    '桂', '广西壮族自治区', '南宁', 44, 2,
+    '宁', '宁夏回族自治区', '银川', 1, 3,
+    '蒙', '内蒙古自治区', '呼和浩特', 4, 3,
+    '新', '新疆维吾尔自治区', '乌鲁木齐', 5, 3,
+    '苏', '江苏省', '南京', 6, 3,
+    '浙', '浙江省', '杭州', 7, 3,
+    '皖', '安徽省', '合肥', 12, 3,
+    '闽', '福建省', '福州', 16, 3,
+    '赣', '江西省', '南昌', 21, 3,
+    '鲁', '山东省', '济南', 24, 3,
+    '豫', '河南省', '郑州', 27, 3,
+    '鄂', '湖北省', '武汉', 30, 3,
+    '湘', '湖南省', '长沙', 33, 3,
+    '粤', '广东省', '广州', 36, 3,
+    '吉', '吉林省', '长春', 41, 3,
+    '琼', '海南省', '海口', 45, 3,
+    '川', '四川省', '成都', 1, 4,
+    '贵', '贵州省', '贵阳', 7, 4,
+    '云', '云南省', '昆明', 11, 4,
+    '晋', '山西省', '太原', 12, 4,
+    '辽', '辽宁省', '沈阳', 13, 4,
+    '陕', '陕西省', '西安', 14, 4,
+    '甘', '甘肃省', '兰州', 15, 4,
+    '青', '青海省', '西宁', 16, 4,
+    '冀', '河北省', '石家庄', 17, 4,
+    '黑', '黑龙江省', '哈尔滨', 21, 4,
+    '台', '台湾省', '台北', 27, 4,
+    '港', '香港特别行政区', '香港', 30, 4,
+    '澳', '澳门特别行政区', '澳门', 36, 4,
+    'Aa', 'Amoy', '厦门', 40, 4,
+    'Bb', 'Baoding', '保定', 41, 4,
+    'Cc', 'Canton', '广州', 42, 4,
+    'Dd', 'Dandong', '丹东', 43, 4,
+    'Ee', 'Ezhou', '鄂州', 44, 4,
+    'Ff', 'Foochow', '福州', 45, 4,
+    'Gg', 'Guiyang', '贵阳', 46, 4,
+    'Hh', 'HongKong', '香港', 1, 5,
+    'Ii', 'I', 'i', 2, 5,
+    'Jj', 'Jinan', '济南', 3, 5,
+    'Kk', 'Kweilin', '桂林', 4, 5,
+    'Ll', 'Lahsa', '拉萨', 5, 5,
+    'Mm', 'Macau', '澳门', 6, 5,
+    'Nn', 'Nanking', '南京', 7, 5,
+    'Oo', 'O', 'o', 10, 5,
+    'Pp', 'Peking', '北京', 18, 5,
+    'Qq', '	Qiqihar', '齐齐哈尔', 21, 5,
+    'Rr', 'R', 'r', 27, 5,
+    'Ss', 'Shanghai', '上海', 30, 5,
+    'Tt', 'Tibet', '西藏', 36, 5,
+    'Uu', 'Urumqi', '乌鲁木齐', 39, 5,
+    'Vv', 'V', 'v', 47, 5,
+  ]
+
+  let camera, scene, renderer  // Three.js渲染三要素： 相机 场景 渲染器
+  let controls // 控制器
+
+  let objects = []
+  let targets = {table: [], sphere: [], helix: [], grid: []}
+
+  init()
+  animate()
+
+  function init() {
+
+    // Three两种相机 正交（远近高低相同） 透视（近大远小）
+    // 透视相机(fov：可视角度    aspect：width/height,通常设置为canvas元素的高宽比   near：近端距离   far:远端距离
+    // 只有离相机的距离大于near值，小于far值，且在相机的可视角度之内，才能被相机投影到。
+    camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 10000)
+    camera.position.z = 3000
+
+    scene = new THREE.Scene()
+
+    // table
+    for (let i = 0; i < table.length; i += 5) {
+      let element = document.createElement('div')
+      element.className = 'element'
+      element.style.backgroundColor = 'rgba(107,203,202,' + ( Math.random() * 0.5 + 0.25 ) + ')'
+      element.setAttribute("title", table[i + 1] + "  " + table[i + 1] + "  " + table[i + 2])
+
+      let number = document.createElement('div')
+      number.className = 'number'
+      number.textContent = (i / 5) + 1
+      element.appendChild(number)
+
+      let symbol = document.createElement('div')
+      symbol.className = 'symbol'
+      symbol.textContent = table[i]
+      element.appendChild(symbol)
+
+      let details = document.createElement('div')
+      details.className = 'details'
+      details.innerHTML = table[i + 1] + '<br>' + table[i + 2]
+      element.appendChild(details)
+
+      let object = new THREE.CSS3DObject(element)
+      // 初始化位置
+//      object.position.x = Math.random() * 4000 - 2000;
+//      object.position.y = Math.random() * 4000 - 2000;
+//      object.position.z = Math.random() * 4000 - 2000;
+      object.position.x = 0
+      object.position.y = 0
+      object.position.z = 0
+      scene.add(object)
+
+      objects.push(object)
+
+      let object3D = new THREE.Object3D()
+      // element w*h = 120*160  设每块宽140,高180(20边距) totalW = 47*140=6580  totalH = 5*180=900
+      object3D.position.x = ( table[i + 3] * 140 ) - 3290
+      object3D.position.y = -( table[i + 4] * 180 ) + 450
+
+      targets.table.push(object3D)
+    }
+
+    // sphere
+    let vectorSphere = new THREE.Vector3()
+    for (let i = 0, l = objects.length; i < l; i++) {
+
+      let phi = Math.acos(-1 + ( 2 * i ) / l)
+      let theta = Math.sqrt(l * Math.PI) * phi
+
+      let object = new THREE.Object3D()
+      object.position.x = 800 * Math.cos(theta) * Math.sin(phi)
+      object.position.y = 800 * Math.sin(theta) * Math.sin(phi)
+      object.position.z = 800 * Math.cos(phi)
+
+      vectorSphere.copy(object.position).multiplyScalar(2)
+
+      object.lookAt(vectorSphere)
+      targets.sphere.push(object)
+    }
+
+    // helix
+    let vectorHelix = new THREE.Vector3()
+    for (let i = 0, l = objects.length; i < l; i++) {
+
+      let phi = i * 0.175 + Math.PI
+
+      let object = new THREE.Object3D()
+      object.position.x = 900 * Math.sin(phi)
+      object.position.y = -( i * 8 ) + 450
+      object.position.z = 900 * Math.cos(phi)
+
+      vectorHelix.x = object.position.x * 2
+      vectorHelix.y = object.position.y
+      vectorHelix.z = object.position.z * 2
+
+      object.lookAt(vectorHelix)
+      targets.helix.push(object)
+    }
+
+    // grid
+    for (let i = 0; i < objects.length; i++) {
+
+      let object = new THREE.Object3D()
+      object.position.x = ( ( i % 5 ) * 400 ) - 800
+      object.position.y = ( -( Math.floor(i / 5) % 5 ) * 400 ) + 800
+      object.position.z = ( Math.floor(i / 25) ) * 1000 - 2000
+
+      targets.grid.push(object)
+    }
+
+    // 渲染器
+    renderer = new THREE.CSS3DRenderer()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.domElement.style.position = 'absolute'
+    document.getElementById('container').appendChild(renderer.domElement)
+
+    // 轨迹球控件TrackballControls   鼠标控制相机移动
+    controls = new THREE.TrackballControls(camera, renderer.domElement)
+    controls.rotateSpeed = 0.5
+    controls.minDistance = 500
+    controls.maxDistance = 6000
+    controls.addEventListener('change', render)
+
+    transform(targets.table, 1500)
+
+    window.setInterval(() => {
+      switch (Math.ceil(Math.random() * 4)) {
+        case 1:
+          transform(targets.table, 2000)
+          break
+        case 2:
+          transform(targets.sphere, 2000)
+          break
+        case 3:
+          transform(targets.helix, 2000)
+          break
+        case 4:
+          transform(targets.grid, 2000)
+          break
+      }
+    }, 3000)
+
+    window.addEventListener('resize', onWindowResize, false)
+  }
+
+  function transform(targets, duration) {
+
+    TWEEN.removeAll()
+
+    objects.forEach((object, idx) => {
+      const target = targets[idx]
+      new TWEEN.Tween(object.position)
+        .to({x: target.position.x, y: target.position.y, z: target.position.z}, Math.random() * duration + duration)
+        .easing(TWEEN.Easing.Exponential.InOut)
+        .start()
+    })
+
+    new TWEEN.Tween(this)
+      .to({}, duration * 2)
+      .onUpdate(render)
+      .start()
+  }
+
+  function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight// 重置长宽为屏幕长宽比
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    render()
+  }
+
+  function animate() {
+    requestAnimationFrame(animate)
+    TWEEN.update()
+    controls.update()
+  }
+
+  function render() {
+    renderer.render(scene, camera)
+  }
+
+</script>
+</body>
+</html>
